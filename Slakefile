@@ -8,7 +8,7 @@ run = (cmd, silent = true) ->
         console.log stdout if stdout
 
 build = ->
-    run 'cat src/*.ls | lsc -sdbc > www/js/main.js', false
+    run 'cat src/*.ls | lsc -sdc > www/js/main.js', false
 
 task \build \build build
 
