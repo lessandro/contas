@@ -1,7 +1,18 @@
 guys = [0 1 2]
 names = <[ le ra lu ]>
 
-data = [
+months = [
+*   name: "janeiro",
+    data: [
+    *   name: "aluguel"
+        price: 900.00
+        who: 1
+        owers: [0, 1, 2]
+        payed: [1]
+    ]
+
+*   name: "dezembro"
+    data: [
     *   name: "aluguel"
         price: 900.00
         who: 1
@@ -37,13 +48,15 @@ data = [
         who: 1
         owers: [0, 1, 2]
         payed: [1]
+    ]
 ]
 
 # ---------
 
-new-text-cell = (text) ->
+new-text-cell = (text, placeholder="") ->
     cell = $ \<td></td>
-    input = $ '<input type="text" class="textcell" placeholder="novo">'
+    input = $ '<input type="text" class="textcell">'
+    input.attr 'placeholder', placeholder
     input.prop 'value', text
     input.change update
     cell.append input
@@ -77,28 +90,69 @@ new-check-cell = (checked) ->
 
     cell
 
-new-row = (it, i) ->
+new-row = (it, tag) ->
     row = $ \<tr></tr>
 
-    row.append new-text-cell it.name
     if it.name
+        row.append new-text-cell it.name, "<delete>"
         row.append new-text-cell it.price
-        row.append new-radio-cell \radio + i, it.who
+        row.append new-radio-cell \radio- + tag, it.who
         row.append new-check-cell it.owers
         row.append new-check-cell it.payed
     else
-        [row.append "<td></td>" for i in [1 to 5]]
+        row.append new-text-cell "", "<new>"
+        row.append "<td></td>"
+        [row.append "<td class='names'>#{names * ','}</td>" for i in [3 4 5]]
 
     row
 
-create-table = !->
-    tbl = $ \#table
-    tbl.empty!
+create-table = (month, tbody) ->
+    for item, i in month.data
+        tbody.append new-row item, month.name + i
 
-    for item, i in data
-        tbl.append new-row item, i
+    tbody.append new-row {}
 
-    tbl.append new-row {}, data.length
+create-month = (month) ->
+    html = """
+        <div>
+            <h1></h1>
+            <div class="row">
+                <div class="span6 tablebox">
+                    <table width="100%">
+                        <thead class="tablehead">
+                            <tr>
+                                <th>coisa</th>
+                                <th>$</th>
+                                <th>pagou</th>
+                                <th>deve pagar</th>
+                                <th>pagou</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="span5" id="result">
+                </div>
+            </div>
+        </div>
+    """
+
+    div = $ html
+    title = $ 'h1', div
+    tbody = $ 'tbody', div
+    
+    title.text month.name
+    create-table month, tbody
+    div
+
+create-page = !->
+    container = $ \#content
+    container.empty!
+
+    for month in months
+        container.append create-month month
 
 # ---------
 
@@ -118,9 +172,8 @@ read-inputs = (cell) ->
             checked.push($ @ .val!)
     map parse-int, checked
 
-update = !->
-    tbl = $ \#table
-    data := []
+read-table = (element) ->
+    tbl = $ 'tbody', element
 
     for row, i in tbl.children!
         cells = $ row .children!
@@ -133,9 +186,18 @@ update = !->
         item.who = head read-inputs cells[2]
         item.owers = read-inputs cells[3]
         item.payed = read-inputs cells[4]
-        data.push item
+        item
 
-    create-table!
+update = !->
+    container = $ \#content
+    months := []
+
+    for month in container.children!
+        name = ($ 'h1', month).text!
+        data = read-table month
+        months.push { name, data }
+
+    create-page!
     calculate!
 
 # ---------
@@ -155,11 +217,14 @@ print-item = (item) ->
 print-list = (items) ->
     (map print-item, items) * ", "
 
-calculate = !->
+print-span-list = (items, css) ->
+    "<span class=\"#{css}\">#{print-list items}</span>"
+
+calculate-month = (month) ->
     # owes[i][j] = i owes j
     owes = [[[] for i in guys] for j in guys]
 
-    for item in data
+    for item in month.data
         num = item.owers.length
         amount = item.price * 1.0 / num
         for i in item.owers
@@ -179,22 +244,28 @@ calculate = !->
 
             summary = "<h4>#{names[i]} → #{names[j]} #{currency ij - ji}</h4>"
             summary += "<h6>"
-            summary += "<span class=\"owed\">#{print-list owes[i][j]}</span>"
+            summary += print-span-list owes[i][j], \owed
 
             if ji > 0
-                summary += "<span class=\"deducted\">, #{print-list map neg-amount, owes[j][i]}</span>"
+                negged = map neg-amount, owes[j][i]
+                summary += ", " + print-span-list negged, \deducted
             summary += "</h6>"
 
             summaries.push summary
     
-    result = $ \#result
-    result.empty!
-    result.append summaries * "<hr>"
+    summaries * "<hr>"
+
+calculate = !->
+    container = $ \#content
+
+    for month, i in container.children!
+        result = $ '#result', month
+        result.append calculate-month months[i]
 
 # ------------
 
 run = !->
-    create-table!
+    create-page!
     calculate!
 
 $ run

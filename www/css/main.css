@@ -25,6 +25,10 @@ td {
     vertical-align: middle;
 }
 
+hr {
+    margin: 5px 0;
+}
+
 .deducted {
     color: silver;
 }
@@ -35,4 +39,12 @@ td {
 
 .thinglist {
     color: silver;
+}
+
+.names {
+    color: #cccccc;
+}
+
+#content {
+    margin-top: 20px;
 }
