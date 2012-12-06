@@ -1,9 +1,16 @@
 guys = [0 1 2]
-name = <[ le ra lu ]>
+names = <[ le ra lu ]>
 
 data = [
     *   name: "Aluguel"
         price: 900.00
+        who: 1
+        owers: [0, 1, 2]
+        payed: [1]
+        id: 0
+
+    *   name: "Condominio"
+        price: 300.00
         who: 1
         owers: [0, 1, 2]
         payed: [1]
@@ -28,7 +35,7 @@ data = [
         who: 0
         owers: [0, 1]
         payed: [0]
-        id: 3
+        id: 4
 ]
 
 new-text-cell = (text) ->
@@ -44,6 +51,7 @@ new-radio-cell = (name, selected) ->
     for i in guys
         input = $ '<input type=\"radio\">'
         input.attr 'name', name
+        input.val i
         input.change update
         if i == selected
             input.prop 'checked', true
@@ -57,6 +65,7 @@ new-check-cell = (checked) ->
 
     for i in guys
         input = $ '<input type=\"checkbox\">'
+        input.val i
         input.change update
         if i in checked
             input.prop 'checked', true
@@ -85,11 +94,29 @@ new-row = ->
 
     row
 
+read-text = (cell) ->
+    input = $ 'input', cell
+    input.val!
+
+read-inputs = (cell) ->
+    inputs = $ 'input', cell
+    checked = []
+    inputs.each ->
+        if $ @ .prop 'checked'
+            checked.push($ @ .val!)
+    map parse-int, checked
+
 update = !->
     tbl = $ \#table
     for row, i in tbl.children!
         cells = $ row .children!
-        #data[i].price = parse-float 
+        data[i].name = read-text cells[0]
+        data[i].price = parse-float read-text cells[1]
+        data[i].who = head read-inputs cells[2]
+        data[i].owers = read-inputs cells[3]
+        data[i].payed = read-inputs cells[4]
+
+    calculate!
 
 create-table = !->
     tbl = $ \#table
@@ -116,10 +143,10 @@ calculate = !->
         for j in guys
             if i == j
                 continue
-            divida = owes[i][j] - owes[j][i]
-            if divida <= 0
+            owed = owes[i][j] - owes[j][i]
+            if owed <= 0
                 continue
-            result.append "#{name[i]} -> #{name[j]} R$ #{divida}<br>"
+            result.append "#{names[i]} -> #{names[j]} R$ #{owed}<br>"
 
 run = !->
     create-table!
