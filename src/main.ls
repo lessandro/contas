@@ -1,17 +1,10 @@
 guys = [0 1 2]
 names = <[ le ra lu ]>
+month-names = <[ void janeiro fevereiro março abril maio junho julho agosto setembro outubro novembro dezembro ]>
 
 months = [
-*   name: "janeiro",
-    data: [
-    *   name: "aluguel"
-        price: 900.00
-        who: 1
-        owers: [0, 1, 2]
-        payed: [1]
-    ]
-
-*   name: "dezembro"
+*   month: 12
+    year: 2012
     data: [
     *   name: "aluguel"
         price: 900.00
@@ -108,7 +101,7 @@ new-row = (it, tag) ->
 
 create-table = (month, tbody) ->
     for item, i in month.data
-        tbody.append new-row item, month.name + i
+        tbody.append new-row item, "#{month.year}-#{month.month}-#{i}"
 
     tbody.append new-row {}
 
@@ -136,6 +129,7 @@ create-month = (month) ->
                 <div class="span5" id="result">
                 </div>
             </div>
+            <hr>
         </div>
     """
 
@@ -143,7 +137,9 @@ create-month = (month) ->
     title = $ 'h1', div
     tbody = $ 'tbody', div
     
-    title.text month.name
+    div.data 'month', month.month
+    div.data 'year', month.year
+    title.text month-names[month.month]
     create-table month, tbody
     div
 
@@ -192,13 +188,15 @@ update = !->
     container = $ \#content
     months := []
 
-    for month in container.children!
-        name = ($ 'h1', month).text!
-        data = read-table month
-        months.push { name, data }
+    for element in container.children!
+        div = $ element
+        months.push {
+            month: parse-int div.data \month
+            year: parse-int div.data \year
+            data: read-table element
+        }
 
-    create-page!
-    calculate!
+    refresh!
 
 # ---------
 
@@ -253,7 +251,7 @@ calculate-month = (month) ->
 
             summaries.push summary
     
-    summaries * "<hr>"
+    summaries * "<hr class='smallhr'>"
 
 calculate = !->
     container = $ \#content
@@ -264,8 +262,45 @@ calculate = !->
 
 # ------------
 
-run = !->
+next-month = (data=[]) ->
+    if months.length > 0
+        last-month = months[0]
+    else
+        today = new Date!
+        last-month =
+            year: today.getFullYear!
+            month: today.getMonth!
+            data: []
+
+    data = JSON.parse JSON.stringify data
+    year = last-month.year
+    month = last-month.month + 1
+
+    if month == 13
+        month = 1
+        year++
+
+    { month, year, data }
+
+refresh = !->
     create-page!
     calculate!
+
+run = !->
+    $ \#newmonth .click ->
+        months.unshift next-month!
+        refresh!
+
+    $ \#copymonth .click ->
+        months.unshift next-month months[0].data
+        refresh!
+
+    $ \#delmonth .click ->
+        if months.length == 0
+            return
+        months.shift!
+        refresh!
+
+    refresh!
 
 $ run
