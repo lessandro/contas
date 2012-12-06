@@ -44,6 +44,8 @@ months = [
     ]
 ]
 
+must-rebuild = true
+
 # ---------
 
 new-text-cell = (text, placeholder="") ->
@@ -158,7 +160,11 @@ read-text = (cell) ->
 
 read-float = (cell) ->
     num = parse-float read-text cell
-    if isNaN num then 0 else num
+    if isNaN num
+        $('input', cell).val "0"
+        0
+    else
+        num
 
 read-inputs = (cell) ->
     inputs = $ 'input', cell
@@ -176,6 +182,7 @@ read-table = (element) ->
         item = {}
         item.name = read-text cells[0]
         if item.name.length == 0
+            must-rebuild := i != tbl.children!.length - 1
             continue
 
         item.price = read-float cells[1]
@@ -258,6 +265,7 @@ calculate = !->
 
     for month, i in container.children!
         result = $ '#result', month
+        result.empty!
         result.append calculate-month months[i]
 
 # ------------
@@ -283,22 +291,27 @@ next-month = (data=[]) ->
     { month, year, data }
 
 refresh = !->
-    create-page!
+    if must-rebuild
+        create-page!
+        must-rebuild := false
     calculate!
 
 run = !->
-    $ \#newmonth .click ->
+    $ \#newmonth .click !->
         months.unshift next-month!
+        must-rebuild := true
         refresh!
 
-    $ \#copymonth .click ->
+    $ \#copymonth .click !->
         months.unshift next-month months[0].data
+        must-rebuild := true
         refresh!
 
-    $ \#delmonth .click ->
+    $ \#delmonth .click !->
         if months.length == 0
             return
         months.shift!
+        must-rebuild := true
         refresh!
 
     refresh!
