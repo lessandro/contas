@@ -11,7 +11,7 @@ server = "lzmhttpd/0.1"
 errorHandler :: IOError -> IO String
 errorHandler = const $ return ""
 
-readLine :: IO ()
+readLine :: Handle -> IO String
 readLine h = catch (hGetLine h) errorHandler
 
 processConnection :: Handle -> IO ()
