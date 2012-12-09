@@ -1,3 +1,5 @@
+module Contas.Httpd where
+
 import Prelude hiding (catch)
 import Control.Concurrent
 import Control.Exception

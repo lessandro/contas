@@ -1,0 +1,13 @@
+name:           Contas
+version:        0.1
+synopsis:       Contas
+author:         Lessandro Mariano
+license:        BSD3
+build-type:     Simple
+cabal-version:  >= 1.2
+
+executable program1
+  build-depends:  base, json, network, mtl, CouchDB
+  main-is:        httpd.hs
+  hs-source-dirs: src
+  ghc-options:    -XDeriveDataTypeable -XScopedTypeVariables
