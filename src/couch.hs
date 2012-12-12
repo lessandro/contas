@@ -1,6 +1,10 @@
 {-# LANGUAGE DeriveDataTypeable, ScopedTypeVariables #-}
 
-module Contas.Couch where
+module Couch where
+
+import Control.Applicative
+import Control.Monad
+import Control.Monad.Trans
 
 import Database.CouchDB
 import Data.Data (Data, Typeable)
@@ -13,15 +17,18 @@ data Item = Item { blob, ref :: String }
 
 contas = db "contas"
 
-getItem ::  String -> IO Item
-getItem ref = do
-    Just raw <- runCouchDB' $ getDocRaw contas $ doc ref
-    return $ (decodeJSON raw :: Item)
+decodeItem :: String -> Item
+decodeItem = decodeJSON
 
-getCurrentRef :: IO String
+getItem ::  String -> IO (Maybe Item)
+getItem ref = do
+    raw <- runCouchDB' $ getDocRaw contas $ doc ref
+    return $ liftM decodeItem $ raw
+
+getCurrentRef :: IO (Maybe String)
 getCurrentRef = do
     item <- getItem "current"
-    return $ ref item
+    return $ liftM ref $ item
 
 updateCurrent :: String -> IO ()
 updateCurrent newRef = do
@@ -33,18 +40,20 @@ updateCurrent newRef = do
 
 addNew :: String -> IO ()
 addNew newBlob = do
-    current <- getCurrentRef
+    Just current <- getCurrentRef
     let item = Item newBlob current
     (doc1, rev1) <- runCouchDB' $ newDoc contas $ toJSON item
     updateCurrent $ show doc1
     return ()
 
-getBlob :: String -> IO String
+getBlob :: String -> IO (Maybe String)
 getBlob ref = do
     item <- getItem ref
-    return $ blob item
+    return $ liftM blob $ item
 
-getCurrentBlob :: IO String
+getCurrentBlob :: IO (Maybe String)
 getCurrentBlob = do
-    current <- getCurrentRef
-    getBlob current
+    mref <- getCurrentRef
+    case mref of
+        Just ref -> getBlob ref
+        Nothing -> return Nothing
