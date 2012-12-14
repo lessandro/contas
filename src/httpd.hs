@@ -4,7 +4,6 @@ import Prelude hiding (catch)
 import Data.Char
 import Control.Concurrent
 import Control.Exception
-import Control.Monad.State
 import Network
 import System.IO
 
