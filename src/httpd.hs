@@ -12,20 +12,25 @@ import Couch
 port = 20202
 server = "lzmhttpd/0.1"
 
+-- IOError handler
 errorHandler :: IOError -> IO String
 errorHandler = const $ return ""
 
+-- Try to read from a handle, return "" if that fails
 dataOrEpsilon :: (Handle -> IO String) -> Handle -> IO String
 dataOrEpsilon f h = catch (f h) errorHandler
 
+-- Read a char from a handle
 readChar :: Handle -> IO String
 readChar h = do
     ch <- hGetChar h
     return [ch]
 
+-- Read a line from a handle
 readLine :: Handle -> IO String
 readLine = dataOrEpsilon hGetLine
 
+-- Keep reading lines until "\r" is found
 readUntilCR :: Handle -> IO ()
 readUntilCR h = do
     line <- readLine h
@@ -34,6 +39,7 @@ readUntilCR h = do
         "" -> return ()
         _ -> readUntilCR h
 
+-- Read and decode things like "GET / HTTP/1.0\r"
 readMethod :: Handle -> IO (String, String)
 readMethod h = do
     line <- readLine h
@@ -43,6 +49,7 @@ readMethod h = do
         (_:[]) -> return ("",  "")
         _ -> return (splitted!!0, splitted!!1)
 
+-- Decode things like "Content-Length: 1234"
 parseKV :: String -> (String, String)
 parseKV line
     | splitted == [] = ("", "")
@@ -52,6 +59,9 @@ parseKV line
         key = map toLower $ head splitted
         value = last splitted
 
+-- Read lines until a "Content-Length" header is found, and then keep reading
+-- lines until the end of the HTTP header.
+-- Return 0 if a content-length header is not present.
 readLength :: Handle -> IO Int
 readLength h = do
     line <- readLine h
@@ -63,6 +73,7 @@ readLength h = do
             return $ (read value :: Int)
         _ -> readLength h
 
+-- Read the content part of the HTTP post
 readContent :: Handle -> Int -> IO String
 readContent h len
     | len == 0 = return ""
@@ -72,6 +83,7 @@ readContent h len
         rest <- readContent h (len-1)
         return $ str ++ rest
 
+-- Write the HTTP response
 writeResponse :: Handle -> String -> IO ()
 writeResponse h content = do
     hPutStr h "HTTP/1.1 200 OK\r\n"
@@ -85,10 +97,13 @@ writeResponse h content = do
     hPutStr h "\r\n"    
     hPutStr h content
 
+-- Decode the Maybe monad
 justOrEpsilon :: Maybe String -> String
 justOrEpsilon (Just thing) = thing
 justOrEpsilon Nothing = ""
 
+-- Get a document from the CouchDB
+-- If no path is specified ("/"), return the current document
 doGet :: String -> IO String
 doGet "-" = return ""
 doGet "/" = getCurrentRef >>= \ref -> doGet $ "-" ++ justOrEpsilon ref
@@ -96,16 +111,19 @@ doGet path = do
     json <- getRaw $ tail path
     return $ justOrEpsilon json
 
+-- Save a new document
 doPost :: String -> IO String
 doPost content = do
     addNewBlob content
     doGet "/"
 
+-- Process the HTTP request
 processRequest :: String -> String -> String -> IO String
 processRequest "GET" path _ = doGet path
 processRequest "POST" _ content = doPost content
 processRequest _ _ _ = return ""
 
+-- Process a HTTP connection
 processConnection :: Handle -> IO ()
 processConnection h = do
     (method, path) <- readMethod h
@@ -126,6 +144,7 @@ processConnection h = do
     writeResponse h $ response
     hClose h
 
+-- Accept/fork loop
 mainLoop :: Socket -> IO ()
 mainLoop sock = do
     (handle, _, _) <- accept sock
