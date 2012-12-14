@@ -66,6 +66,7 @@ readChar h = do
 readContent :: Handle -> Int -> IO String
 readContent h len
     | len == 0 = return ""
+    | len > 32768 = return ""
     | otherwise = do
         str <- dataOrEpsilon readChar h
         rest <- readContent h (len-1)
