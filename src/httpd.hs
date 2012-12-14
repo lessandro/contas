@@ -18,6 +18,11 @@ errorHandler = const $ return ""
 dataOrEpsilon :: (Handle -> IO String) -> Handle -> IO String
 dataOrEpsilon f h = catch (f h) errorHandler
 
+readChar :: Handle -> IO String
+readChar h = do
+    ch <- hGetChar h
+    return [ch]
+
 readLine :: Handle -> IO String
 readLine = dataOrEpsilon hGetLine
 
@@ -35,6 +40,7 @@ readMethod h = do
     let splitted = words line
     case splitted of
         [] -> return ("", "")
+        (_:[]) -> return ("",  "")
         _ -> return (splitted!!0, splitted!!1)
 
 parseKV :: String -> (String, String)
@@ -57,11 +63,6 @@ readLength h = do
             return $ (read value :: Int)
         _ -> readLength h
 
-readChar :: Handle -> IO String
-readChar h = do
-    ch <- hGetChar h
-    return [ch]
-
 readContent :: Handle -> Int -> IO String
 readContent h len
     | len == 0 = return ""
@@ -77,6 +78,7 @@ writeResponse h content = do
     hPutStr h "Content-Type: application/json\r\n"
     hPutStr h "Access-Control-Allow-Origin: *\r\n"
     hPutStr h "Access-Control-Allow-Methods: GET, POST\r\n"
+    hPutStr h "Access-Control-Allow-Headers: Content-Length, Content-Type\r\n"
     hPutStr h $ "Server: " ++ server ++ "\r\n"
     hPutStr h $ "Content-Length: " ++ (show $ length content) ++ "\r\n"
     hPutStr h "Connection: close\r\n"
