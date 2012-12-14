@@ -10,7 +10,7 @@ import System.IO
 
 import Couch
 
-port = 1234
+port = 20202
 server = "lzmhttpd/0.1"
 
 errorHandler :: IOError -> IO String
