@@ -39,8 +39,8 @@ updateCurrent newRef = do
     Just (doc2, rev2) <- runCouchDB' $ updateDoc contas (doc1, rev1) json2
     return ()
 
-addNew :: String -> IO ()
-addNew newBlob = do
+addNewBlob :: String -> IO ()
+addNewBlob newBlob = do
     Just current <- getCurrentRef
     let item = Item newBlob current
     (doc1, rev1) <- runCouchDB' $ newDoc contas $ toJSON item
