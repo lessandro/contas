@@ -47,15 +47,3 @@ addNewBlob newBlob = do
     (doc1, rev1) <- runCouchDB' $ newDoc contas $ toJSON item
     updateCurrent $ show doc1
     return ()
-
-getBlob :: String -> IO (Maybe String)
-getBlob ref = do
-    item <- getItem ref
-    return $ liftM blob $ item
-
-getCurrentBlob :: IO (Maybe String)
-getCurrentBlob = do
-    mref <- getCurrentRef
-    case mref of
-        Just ref -> getBlob ref
-        Nothing -> return Nothing
