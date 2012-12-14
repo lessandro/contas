@@ -2,13 +2,9 @@
 
 module Couch where
 
-import Control.Applicative
 import Control.Monad
-import Control.Monad.Trans
-
-import Database.CouchDB
 import Data.Data (Data, Typeable)
-
+import Database.CouchDB
 import Text.JSON
 import Text.JSON.Generic (toJSON, fromJSON, decodeJSON)
 
