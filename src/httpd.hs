@@ -85,14 +85,26 @@ writeResponse h content = do
     hPutStr h "\r\n"    
     hPutStr h content
 
-doGet path = path
-doPost path content = path ++ " " ++ content
+justOrEpsilon :: Maybe String -> String
+justOrEpsilon (Just thing) = thing
+justOrEpsilon Nothing = ""
 
-processRequest :: String -> String -> String -> String
-processRequest method path content
-    | method == "GET" = doGet path
-    | method == "POST" = doPost path content
-    | otherwise = ""
+doGet :: String -> IO String
+doGet "-" = return ""
+doGet "/" = getCurrentRef >>= \ref -> doGet $ "-" ++ justOrEpsilon ref
+doGet path = do
+    json <- getRaw $ tail path
+    return $ justOrEpsilon json
+
+doPost :: String -> IO String
+doPost content = do
+    addNewBlob content
+    doGet "/"
+
+processRequest :: String -> String -> String -> IO String
+processRequest "GET" path _ = doGet path
+processRequest "POST" _ content = doPost content
+processRequest _ _ _ = return ""
 
 processConnection :: Handle -> IO ()
 processConnection h = do
@@ -106,7 +118,12 @@ processConnection h = do
     putStrLn $ "content: " ++ show content
     putStrLn ""
 
-    writeResponse h $ processRequest method path content
+    response <- processRequest method path content
+
+    putStrLn $ "response: " ++ show response
+    putStrLn ""
+
+    writeResponse h $ response
     hClose h
 
 mainLoop :: Socket -> IO ()
