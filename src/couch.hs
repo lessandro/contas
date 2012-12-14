@@ -16,9 +16,14 @@ contas = db "contas"
 decodeItem :: String -> Item
 decodeItem = decodeJSON
 
+getRaw :: String -> IO (Maybe String)
+getRaw ref = do
+    raw <- runCouchDB' $ getDocRaw contas $ doc ref
+    return raw
+
 getItem ::  String -> IO (Maybe Item)
 getItem ref = do
-    raw <- runCouchDB' $ getDocRaw contas $ doc ref
+    raw <- getRaw ref
     return $ liftM decodeItem $ raw
 
 getCurrentRef :: IO (Maybe String)
