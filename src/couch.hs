@@ -33,7 +33,8 @@ getCurrentRef = do
 
 updateCurrent :: String -> IO ()
 updateCurrent newRef = do
-    Just (doc1, rev1, json1 :: JSValue) <- runCouchDB' $ getDoc contas $ doc "current"
+    theDoc <- runCouchDB' $ getDoc contas $ doc "current"
+    let Just (doc1, rev1, json1 :: JSValue) = theDoc
     let (Ok (item1 :: Item)) = fromJSON json1
     let json2 = toJSON item1 { ref = newRef }
     Just (doc2, rev2) <- runCouchDB' $ updateDoc contas (doc1, rev1) json2
