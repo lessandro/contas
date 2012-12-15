@@ -45,6 +45,19 @@ td {
     color: #cccccc;
 }
 
-#content {
+.main-content {
     margin-top: 20px;
+}
+
+.nav-right {
+    padding: 10px 0;
+}
+
+.nav-right > a, .nav-right > span {
+    padding: 10px 15px 10px 0;
+}
+
+.nav-right > a {
+    color: #999;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
 }

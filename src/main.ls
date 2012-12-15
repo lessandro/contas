@@ -1,50 +1,12 @@
+backend-url = 'http://localhost:20202/'
+
 guys = [0 1 2]
 names = <[ le ra lu ]>
 month-names = <[ void janeiro fevereiro março abril maio junho julho agosto setembro outubro novembro dezembro ]>
 
-months = [
-*   month: 12
-    year: 2012
-    data: [
-    *   name: "aluguel"
-        price: 900.00
-        who: 1
-        owers: [0, 1, 2]
-        payed: [1]
-
-    *   name: "condominio"
-        price: 300.00
-        who: 1
-        owers: [0, 1, 2]
-        payed: [1]
-
-    *   name: "internet"
-        price: 150.00
-        who: 0
-        owers: [0, 1, 2]
-        payed: [0]
-
-    *   name: "telefone"
-        price: 40.00
-        who: 0
-        owers: [1, 2]
-        payed: [0]
-
-    *   name: "food"
-        price: 400.00
-        who: 0
-        owers: [0, 1]
-        payed: [0]
-
-    *   name: "luz"
-        price: 100.00
-        who: 1
-        owers: [0, 1, 2]
-        payed: [1]
-    ]
-]
-
-must-rebuild = true
+prev = ""
+updated = ""
+months = []
 
 # ---------
 
@@ -64,36 +26,37 @@ new-radio-cell = (name, selected) ->
         input.attr 'name', name
         input.val i
         input.change update
-        if i == selected
-            input.prop 'checked', true
+        input.prop 'checked', i == selected
 
         cell.append input
 
     cell
 
-new-check-cell = (checked) ->
+new-check-cell = (checked, enabled) ->
     cell = $ \<td></td>
 
     for i in guys
         input = $ '<input type=\"checkbox\">'
         input.val i
         input.change update
-        if i in checked
-            input.prop 'checked', true
+        input.prop 'checked', (i in checked)
+        input.prop 'disabled', (i not in enabled)
 
         cell.append input
 
     cell
 
-new-row = (it, tag) ->
+new-row = (item, tag) ->
     row = $ \<tr></tr>
 
-    if it.name
-        row.append new-text-cell it.name, "<delete>"
-        row.append new-text-cell it.price
-        row.append new-radio-cell \radio- + tag, it.who
-        row.append new-check-cell it.owers
-        row.append new-check-cell it.payed
+    if item.name
+        row.append new-text-cell item.name, "<delete>"
+        row.append new-text-cell item.price
+        row.append new-radio-cell \radio- + tag, item.who
+        row.append new-check-cell item.owers, guys
+        checked = item.payed +++ [item.who]
+        enabled = filter (!= item.who), item.owers
+        row.append new-check-cell checked, enabled
     else
         row.append new-text-cell "", "<new>"
         row.append "<td></td>"
@@ -182,13 +145,12 @@ read-table = (element) ->
         item = {}
         item.name = read-text cells[0]
         if item.name.length == 0
-            must-rebuild := i != tbl.children!.length - 1
             continue
 
         item.price = read-float cells[1]
         item.who = head read-inputs cells[2]
         item.owers = read-inputs cells[3]
-        item.payed = read-inputs cells[4]
+        item.payed = filter (in item.owers), read-inputs cells[4]
         item
 
 update = !->
@@ -202,6 +164,8 @@ update = !->
             year: parse-int div.data \year
             data: read-table element
         }
+
+    save-data!
 
     refresh!
 
@@ -288,32 +252,84 @@ next-month = (data=[]) ->
         month = 1
         year++
 
+    for entry in data
+        entry.payed = []
+
     { month, year, data }
 
 refresh = !->
-    if must-rebuild
-        create-page!
-        must-rebuild := false
+    create-page!
     calculate!
+    $ \#updated .text updated
+
+set-status = !(text) ->
+    status = $ \#status
+    if text == ''
+        status.fadeOut 'fast', !->
+            status.text ''
+    else
+        status .text text
+        status.fadeIn 'fast'
+
+load-ref = !(ref) ->
+    set-status 'loading...'
+
+    $.ajax {
+        type: 'GET'
+        url: backend-url + ref
+        success: (data) ->
+            return unless data
+            blob = JSON.parse data.blob
+            return unless blob
+            months := blob.months
+            updated := blob.updated
+            prev := data.ref
+            refresh!
+        error: !->
+            window.alert 'load error :('
+        complete: !->
+            set-status ''
+    }
+
+save-data = !->
+    set-status 'saving...'
+
+    updated := moment! .format 'YYYY-MM-DD HH:mm:ss'
+
+    $.ajax {
+        type: \POST
+        url: backend-url
+        data: JSON.stringify { months, updated }
+        dataType: \json
+        contentType: \application/json
+        error: !->
+            window.alert 'save error :('
+        complete: !->
+            set-status ''
+    }
 
 run = !->
-    $ \#newmonth .click !->
-        months.unshift next-month!
-        must-rebuild := true
+    $ \#copy .click !->
+        if months.length == 0
+            months.unshift next-month!
+        else
+            months.unshift next-month months[0].data
+        save-data!
         refresh!
 
-    $ \#copymonth .click !->
-        months.unshift next-month months[0].data
-        must-rebuild := true
-        refresh!
-
-    $ \#delmonth .click !->
+    $ \#del .click !->
         if months.length == 0
             return
-        months.shift!
-        must-rebuild := true
-        refresh!
 
-    refresh!
+        if window.confirm 'sure?'
+            months.shift!
+            save-data!
+            refresh!
+
+    $ \#back .click !->
+        if prev != ''
+            load-ref prev
+    
+    load-ref ""
 
 $ run
