@@ -1,4 +1,4 @@
-backend-url = 'http://localhost:20202/'
+backend-url = 'http://lessandro.com:20202/'
 
 guys = [0 1 2]
 names = <[ le ra lu ]>

@@ -2,7 +2,7 @@ module LastDB where
 
 import System.IO
 
-db = withFile "db"
+db = withFile "/tmp/lastdb"
 
 formatThing :: (String, Integer) -> String
 formatThing (line, pos) = show pos ++ " " ++ line
