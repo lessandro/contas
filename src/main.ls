@@ -279,11 +279,12 @@ load-ref = !(ref) ->
         url: backend-url + ref
         success: (data) ->
             return unless data
-            blob = JSON.parse data.blob
+            [prev_, json] = breakIt (== ' '), data
+            prev := prev_
+            blob = JSON.parse json
             return unless blob
             months := blob.months
             updated := blob.updated
-            prev := data.ref
             refresh!
         error: !->
             window.alert 'load error :('

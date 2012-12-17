@@ -7,7 +7,7 @@ import Control.Exception
 import Network
 import System.IO
 
-import Couch
+import LastDB
 
 port = 20202
 server = "lzmhttpd/0.1"
@@ -87,7 +87,7 @@ readContent h len
 writeResponse :: Handle -> String -> IO ()
 writeResponse h content = do
     hPutStr h "HTTP/1.1 200 OK\r\n"
-    hPutStr h "Content-Type: application/json\r\n"
+    hPutStr h "Content-Type: text/plain\r\n"
     hPutStr h "Access-Control-Allow-Origin: *\r\n"
     hPutStr h "Access-Control-Allow-Methods: GET, POST\r\n"
     hPutStr h "Access-Control-Allow-Headers: Content-Length, Content-Type\r\n"
@@ -105,17 +105,15 @@ justOrEpsilon Nothing = ""
 -- Get a document from the CouchDB
 -- If no path is specified ("/"), return the current document
 doGet :: String -> IO String
-doGet "-" = return ""
-doGet "/" = getCurrentRef >>= \ref -> doGet $ "-" ++ justOrEpsilon ref
-doGet path = do
-    json <- getRaw $ tail path
-    return $ justOrEpsilon json
+doGet "/" = getLastThing
+doGet ('/':path) = getThing $ (read path :: Integer)
+doGet _ = return ""
 
 -- Save a new document
 doPost :: String -> IO String
 doPost content = do
-    addNewBlob content
-    doGet "/"
+    appendThing content
+    return "true"
 
 -- Process the HTTP request
 processRequest :: String -> String -> String -> IO String
@@ -136,7 +134,7 @@ processConnection h = do
     putStrLn $ "content: " ++ show content
     putStrLn ""
 
-    response <- processRequest method path content
+    response <- catch (processRequest method path content) errorHandler
 
     putStrLn $ "response: " ++ show response
     putStrLn ""
