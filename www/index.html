@@ -22,6 +22,7 @@
                         <ul class="nav">
                             <li><a id="copy" href="javascript:void(0)">+mes</a></li>
                             <li><a id="del" href="javascript:void(0)">-mes</a></li>
+                            <li><a data-toggle="modal" href="#food-modal">food</a></li>
                             <li><a id="status" href="javascript:void(0)"></a></li>
                         </ul>
                         <span class="pull-right nav-right">
@@ -34,6 +35,20 @@
         </div>
 
         <div class="container main-content" id="content"></div>
+
+        <div id="food-modal" class="modal hide fade in" style="display: none; ">
+            <div class="modal-header">
+                <a class="close" data-dismiss="modal">×</a>
+                <h3>food calculator</h3>
+            </div>
+            <div class="modal-body">
+                <textarea class="food" id="food"></textarea>
+                <input type="text" id="food-total"></input>
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-success" id="food-calc">calculate</a>
+            </div>
+        </div>
 
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
         <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.8.3.min.js"><\/script>')</script>

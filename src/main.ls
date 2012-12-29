@@ -309,6 +309,8 @@ save-data = !->
             set-status ''
     }
 
+has = (str, substr) --> (str.indexOf substr) != -1
+
 run = !->
     $ \#copy .click !->
         if months.length == 0
@@ -331,6 +333,16 @@ run = !->
         if prev != ''
             load-ref prev
     
+    $ \#food-calc .click !->
+        text = $ \#food .val!
+        is-ok = -> !(any has(it), ["JOSE", "Dispo"]) && has(it, "R$")
+        valid = filter is-ok, lines text
+        $ \#food .val unlines valid
+        get-price = -> (last it.split("$")).replace(",", ".") * 1.0
+        total = sum map get-price, valid
+        $ \#food-total .val Math.round total
+        $ \#food-total .focus! .select!
+
     load-ref ""
 
 $ run
