@@ -1,7 +1,8 @@
-module LastDB where
+module Contas.LastDB (getThing, getLastThing, appendThing) where
 
 import System.IO
 
+db :: IOMode -> (Handle -> IO r) -> IO r
 db = withFile "/tmp/lastdb"
 
 formatThing :: (String, Integer) -> String
@@ -21,7 +22,7 @@ rGetLine h pos = do
         '\n' -> return ("", pos-1)
         _ -> do
             (ln, pos') <- rGetLine h $ pos - 1
-            return $ (ln ++ [c], pos')
+            return (ln ++ [c], pos')
 
 fileSize :: Handle -> IO Integer
 fileSize h = do
@@ -41,5 +42,5 @@ getLastThing = db ReadMode $ \h -> do
     return $ formatThing thing
 
 appendThing :: String -> IO ()
-appendThing thing = db AppendMode $ \h -> do
+appendThing thing = db AppendMode $ \h ->
     hPutStrLn h thing

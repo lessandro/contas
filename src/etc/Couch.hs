@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable, ScopedTypeVariables #-}
 
-module Couch where
+module Contas.Couch where
 
 import Control.Monad
 import Data.Data (Data, Typeable)

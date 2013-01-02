@@ -1,15 +1,18 @@
-module Httpd where
+module Contas.Httpd (serve) where
 
 import Prelude hiding (catch)
 import Data.Char
 import Control.Concurrent
-import Control.Exception
+import Control.Exception hiding (handle)
 import Network
 import System.IO
 
-import LastDB
+import Contas.LastDB
 
+port :: PortNumber
 port = 20202
+
+server :: String
 server = "lzmhttpd/0.1"
 
 -- IOError handler
@@ -47,12 +50,12 @@ readMethod h = do
     case splitted of
         [] -> return ("", "")
         (_:[]) -> return ("",  "")
-        _ -> return (splitted!!0, splitted!!1)
+        _ -> return (head splitted, splitted!!1)
 
 -- Decode things like "Content-Length: 1234"
 parseKV :: String -> (String, String)
 parseKV line
-    | splitted == [] = ("", "")
+    | null splitted = ("", "")
     | otherwise = (key, value)
     where
         splitted = words line
@@ -70,7 +73,7 @@ readLength h = do
         "" -> return 0
         "content-length:" -> do
             readUntilCR h
-            return $ (read value :: Int)
+            return (read value :: Int)
         _ -> readLength h
 
 -- Read the content part of the HTTP post
@@ -92,21 +95,16 @@ writeResponse h content = do
     hPutStr h "Access-Control-Allow-Methods: GET, POST\r\n"
     hPutStr h "Access-Control-Allow-Headers: Content-Length, Content-Type\r\n"
     hPutStr h $ "Server: " ++ server ++ "\r\n"
-    hPutStr h $ "Content-Length: " ++ (show $ length content) ++ "\r\n"
+    hPutStr h $ "Content-Length: " ++ show (length content) ++ "\r\n"
     hPutStr h "Connection: close\r\n"
     hPutStr h "\r\n"    
     hPutStr h content
-
--- Decode the Maybe monad
-justOrEpsilon :: Maybe String -> String
-justOrEpsilon (Just thing) = thing
-justOrEpsilon Nothing = ""
 
 -- Get a document from the CouchDB
 -- If no path is specified ("/"), return the current document
 doGet :: String -> IO String
 doGet "/" = getLastThing
-doGet ('/':path) = getThing $ (read path :: Integer)
+doGet ('/':path) = getThing (read path :: Integer)
 doGet _ = return ""
 
 -- Save a new document
@@ -139,18 +137,18 @@ processConnection h = do
     putStrLn $ "response: " ++ show response
     putStrLn ""
 
-    writeResponse h $ response
+    writeResponse h response
     hClose h
 
 -- Accept/fork loop
-mainLoop :: Socket -> IO ()
-mainLoop sock = do
+acceptLoop :: Socket -> IO ()
+acceptLoop sock = do
     (handle, _, _) <- accept sock
-    forkOS $ processConnection handle
-    mainLoop sock
+    _ <- ($) forkOS $ processConnection handle
+    acceptLoop sock
 
-main :: IO ()
-main = do
-    putStr $ "listening on port " ++ (show port) ++ "\n"
+serve :: IO ()
+serve = do
+    putStr $ "listening on port " ++ show port ++ "\n"
     sock <- listenOn $ PortNumber port
-    mainLoop sock
+    acceptLoop sock
