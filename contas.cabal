@@ -2,7 +2,8 @@ name:           Contas
 version:        0.1
 synopsis:       Contas
 author:         Lessandro Mariano
-license:        BSD3
+license:        MIT
+license-file:   LICENSE.txt
 build-type:     Simple
 cabal-version:  >= 1.2
 
