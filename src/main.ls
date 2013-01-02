@@ -1,12 +1,11 @@
-backend-url = 'http://lessandro.com:20202/'
-
-guys = [0 1 2]
+backend-url = 'http://localhost:20202/'
 names = <[ le ra lu ]>
 month-names = <[ void janeiro fevereiro março abril maio junho julho agosto setembro outubro novembro dezembro ]>
 
 prev = ""
 updated = ""
 months = []
+guys = [0 to names.length - 1]
 
 # ---------
 
