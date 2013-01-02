@@ -2,6 +2,8 @@
 
 Roommate bill splitter.
 
+Screenshot: http://i.imgur.com/jukaf.png
+
 ## Front-end
 
 The front-end is a single-page app written in [LiveScript](http://livescript.net), using the [bootstrap](http://twitter.github.com/bootstrap/) framework.
