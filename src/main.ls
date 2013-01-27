@@ -199,6 +199,13 @@ calculate-month = (month) ->
             if i not in item.payed
                 owes[i][item.who].push { item.name, amount }
 
+    # lu -> le becomes lu -> ra, ra -> le
+    for item in owes[2][0]
+        item.name += ' (lu → le)'
+    owes[2][1] = owes[2][1] +++ owes[2][0]
+    owes[1][0] = owes[1][0] +++ owes[2][0]
+    owes[2][0] = []
+
     summaries = []
 
     for i in guys
