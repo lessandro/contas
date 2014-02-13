@@ -208,6 +208,13 @@ calculate-month = (month) ->
     owes[1][0] = owes[1][0] ++ owes[2][0]
     owes[2][0] = []
 
+    # le -> lu becomes le -> ra, ra -> lu
+    for item in owes[0][2]
+        item.name += ' (le → lu)'
+    owes[0][1] = owes[0][1] ++ owes[0][2]
+    owes[1][2] = owes[1][2] ++ owes[0][2]
+    owes[0][2] = []
+
     summaries = []
 
     for i in guys
