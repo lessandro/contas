@@ -81,9 +81,9 @@ create-month = (month) ->
                             <tr>
                                 <th>coisa</th>
                                 <th>$</th>
-                                <th>pagou</th>
-                                <th>deve pagar</th>
-                                <th>pagou</th>
+                                <th>recebe</th>
+                                <th>paga</th>
+                                <th>----</th>
                             </tr>
                         </thead>
                         <tbody id="table">
