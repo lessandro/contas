@@ -1,4 +1,6 @@
-backend-url = 'http://localhost:20202/'
+{Str, filter, map, any, head, sum, lines, unlines} = require 'prelude-ls'
+
+backend-url = 'http://lessandro.com/contas/ws'
 names = <[ le ra lu ]>
 month-names = <[ void janeiro fevereiro março abril maio junho julho agosto setembro outubro novembro dezembro ]>
 
@@ -53,7 +55,7 @@ new-row = (item, tag) ->
         row.append new-text-cell item.price
         row.append new-radio-cell \radio- + tag, item.who
         row.append new-check-cell item.owers, guys
-        checked = item.payed +++ [item.who]
+        checked = item.payed ++ [item.who]
         enabled = filter (!= item.who), item.owers
         row.append new-check-cell checked, enabled
     else
@@ -202,8 +204,8 @@ calculate-month = (month) ->
     # lu -> le becomes lu -> ra, ra -> le
     for item in owes[2][0]
         item.name += ' (lu → le)'
-    owes[2][1] = owes[2][1] +++ owes[2][0]
-    owes[1][0] = owes[1][0] +++ owes[2][0]
+    owes[2][1] = owes[2][1] ++ owes[2][0]
+    owes[1][0] = owes[1][0] ++ owes[2][0]
     owes[2][0] = []
 
     summaries = []
@@ -285,7 +287,7 @@ load-ref = !(ref) ->
         url: backend-url + ref
         success: (data) ->
             return unless data
-            [prev_, json] = breakIt (== ' '), data
+            [prev_, json] = Str.break-str (is ' '), data
             prev := prev_
             blob = JSON.parse json
             return unless blob
