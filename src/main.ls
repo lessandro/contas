@@ -120,7 +120,10 @@ create-page = !->
 
 read-text = (cell) ->
     input = $ 'input', cell
-    input.val!
+    txt = input.val!
+    if txt
+        txt = txt.replace /[^\w ]/g, ''
+    txt
 
 read-float = (cell) ->
     num = parse-float read-text cell
