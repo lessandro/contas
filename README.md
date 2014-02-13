@@ -12,12 +12,12 @@ Any change to the page is immediately saved to the back-end, and it is possible 
 ### Dependencies
 
 - [LiveScript](http://livescript.net)
-- [watchr](https://github.com/bevry/watchr)
+- [browserify](http://browserify.org)
 
 ### Instructions
 
 1. Edit src/main.ls. You might be interested in changing `backend-url`, `names` and `month-names`.
-2. Run `slake build`.
+2. Run `make`.
 3. Copy www/ to your server.
 
 ## Back-end
