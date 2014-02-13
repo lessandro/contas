@@ -56,8 +56,7 @@ new-row = (item, tag) ->
         row.append new-radio-cell \radio- + tag, item.who
         row.append new-check-cell item.owers, guys
         checked = item.payed ++ [item.who]
-        enabled = filter (!= item.who), item.owers
-        row.append new-check-cell checked, enabled
+        row.append new-check-cell checked, false
     else
         row.append new-text-cell "", "<new>"
         row.append "<td></td>"
