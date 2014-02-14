@@ -55,7 +55,7 @@ new-row = (item, tag) ->
         row.append new-text-cell item.price
         row.append new-radio-cell \radio- + tag, item.who
         row.append new-check-cell item.owers, guys
-        checked = item.payed ++ [item.who]
+        checked = [item.who]
         row.append new-check-cell checked, false
     else
         row.append new-text-cell "", "<new>"
@@ -200,8 +200,7 @@ calculate-month = (month) ->
         num = item.owers.length
         amount = item.price * 1.0 / num
         for i in item.owers
-            if i not in item.payed
-                owes[i][item.who].push { item.name, amount }
+            owes[i][item.who].push { item.name, amount }
 
     # lu -> le becomes lu -> ra, ra -> le
     for item in owes[2][0]
