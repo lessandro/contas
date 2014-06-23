@@ -1,7 +1,7 @@
 {Str, filter, map, any, head, sum, lines, unlines} = require 'prelude-ls'
 
 backend-url = 'http://lessandro.com/contas/ws'
-names = <[ le ra lu ]>
+names = <[ le ra lu bru ]>
 month-names = <[ void janeiro fevereiro março abril maio junho julho agosto setembro outubro novembro dezembro ]>
 
 prev = ""
@@ -192,6 +192,13 @@ print-list = (items) ->
 print-span-list = (items, css) ->
     "<span class=\"#{css}\">#{print-list items}</span>"
 
+pass-through = (owes, src, dst, mid) !->
+    for item in owes[src][dst]
+        item.name += " (#{names[src]} → #{names[dst]})"
+    owes[src][mid] = owes[src][mid] ++ owes[src][dst]
+    owes[mid][dst] = owes[mid][dst] ++ owes[src][dst]
+    owes[src][dst] = []
+
 calculate-month = (month) ->
     # owes[i][j] = i owes j
     owes = [[[] for i in guys] for j in guys]
@@ -203,18 +210,16 @@ calculate-month = (month) ->
             owes[i][item.who].push { item.name, amount }
 
     # lu -> le becomes lu -> ra, ra -> le
-    for item in owes[2][0]
-        item.name += ' (lu → le)'
-    owes[2][1] = owes[2][1] ++ owes[2][0]
-    owes[1][0] = owes[1][0] ++ owes[2][0]
-    owes[2][0] = []
+    pass-through owes, 2, 0, 1
 
     # le -> lu becomes le -> ra, ra -> lu
-    for item in owes[0][2]
-        item.name += ' (le → lu)'
-    owes[0][1] = owes[0][1] ++ owes[0][2]
-    owes[1][2] = owes[1][2] ++ owes[0][2]
-    owes[0][2] = []
+    pass-through owes, 0, 2, 1
+
+    # bru -> le becomes bru -> ra, ra -> le
+    pass-through owes, 3, 0, 1
+
+    # le -> bru becomes le -> ra, ra -> bru
+    pass-through owes, 0, 3, 1
 
     summaries = []
 
